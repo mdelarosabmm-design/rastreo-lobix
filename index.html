@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rastreo de pedido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--brand-primary:#108EE3;--brand-secondary:#1E40AF;--brand-font:Inter}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--brand-font),system-ui,-apple-system,'Segoe UI',sans-serif;background:#fff;color:#111827;min-height:100vh;display:flex;flex-direction:column}
+.hdr{background:#fff;border-bottom:1px solid #f3f4f6}
+.hdr-in{padding:12px 24px;display:flex;align-items:center;justify-content:center;min-height:64px;position:relative}
+.brand{display:flex;align-items:center;justify-content:center;min-width:0}
+.hdr img{height:36px;width:auto;object-fit:contain}
+main{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 16px 32px}
+.search-wrap{width:240px;position:absolute;right:24px;top:13px;z-index:2}
+form.search{margin:0;background:#fff}
+.row{display:flex;align-items:center;border:1px solid #eef0f3;border-radius:10px;background:#fff}
+.row:focus-within{border-color:var(--brand-primary)}
+.row input{flex:1;min-width:0;padding:9px 0 9px 14px;border:none;background:transparent;text-align:left;font-size:14px;font-family:inherit;outline:none;color:#111827}
+.row input::placeholder{color:#b0b5bd}
+.row button{width:40px;height:38px;align-self:stretch;flex-shrink:0;padding:0;background:transparent;color:#b0b5bd;border:none;border-radius:0 10px 10px 0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.row button:hover{color:#6b7280}
+.guia-hint{display:flex;flex-direction:column;align-items:center;margin-top:4px;color:var(--brand-secondary);pointer-events:none}
+.guia-hint svg{animation:nudge 1.4s ease-in-out infinite}
+.guia-hint span{margin-top:2px;padding:5px 10px;border-radius:999px;background:#eff6ff;font-size:12px;font-weight:600;white-space:nowrap}
+@keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.guia-hint svg{animation:none}}
+@media (max-width:640px){
+.hdr-in{flex-direction:column;gap:10px;padding:12px 16px}
+.search-wrap{position:static;width:100%}
+.row input{font-size:16px}
+}
+.card{background:#fff;border-radius:16px;padding:24px;max-width:42rem;width:100%}
+.center{text-align:center}
+.muted{color:#6b7280;font-size:14px}
+.tnum{font-size:24px;font-weight:700;font-family:ui-monospace,monospace;letter-spacing:.1em}
+.kicker{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 0;font-size:14px;font-weight:500;color:#374151}
+.nov-note{display:inline-block;margin-top:8px;padding:6px 12px;border-radius:999px;background:#fffbeb;color:#92400e;font-size:13px;font-weight:500;line-height:1.4}
+@media (max-width:640px){.nov-note{border-radius:12px}}
+.surprise{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:calc(42rem - 48px);padding:14px 16px;border-radius:12px;background:#eff6ff;color:var(--brand-secondary);font-size:15px;font-weight:600;line-height:1.4;text-align:center}
+.surprise svg{flex-shrink:0}
+.bsignal{display:flex;gap:12px;align-items:center;border-radius:12px;padding:14px;margin:16px 0}
+.bsignal-a{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.bsignal-r{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.bsignal-o{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
+.tl{display:flex;align-items:flex-start;justify-content:space-between;position:relative;margin:8px 0 4px}
+.tl .step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;padding:0 2px}
+.tl .bar{position:absolute;top:20px;left:50%;width:100%;height:2px;background:#e5e7eb;z-index:0}
+.tl .bar.on{background:var(--brand-primary)}
+.tl .dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;color:#9ca3af;z-index:1}
+.tl .dot.on{color:var(--brand-primary)}
+.tl .lbl{margin-top:8px;font-size:12px;font-weight:600;color:#9ca3af;text-align:center}
+.tl .lbl.on{color:#111827}
+.tl .tlt{font-size:10px;margin-top:2px;color:#d1d5db;text-align:center}
+.tl .tlt.on{color:var(--brand-primary)}
+.info{border-top:1px solid #f3f4f6;padding-top:16px;margin-top:16px}
+.info .ir{display:flex;justify-content:space-between;gap:16px;padding:5px 0}
+.info .ir .k{font-size:14px;color:#6b7280;flex-shrink:0}
+.info .ir .v{font-size:14px;font-weight:600;color:#111827;text-align:right}
+.prods{border-top:1px solid #f3f4f6;margin-top:12px;padding-top:12px;display:flex;flex-direction:column;gap:10px}
+.prods .pr{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:#111827}
+.prods .pr img{width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;background:#f9fafb}
+.prods .pr .nm{flex:1;min-width:0}
+.pay{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px;text-align:right}
+.pay .amt{font-size:18px;font-weight:700;color:#111827;white-space:nowrap}
+.pay .cash{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:#ecfdf5;color:#065f46;font-size:12px;font-weight:600;white-space:nowrap}
+.spin{width:40px;height:40px;border:3px solid #e5e7eb;border-bottom-color:var(--brand-primary);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.stk{display:flex;flex-direction:column;gap:16px;align-items:center;width:100%;max-width:42rem}
+</style>
+</head>
+<body>
+<div class="hdr"><div class="hdr-in">
+  <div class="brand"><img src="https://pub-90121d4d6ea24fdf8034d8157e6f08d0.r2.dev/products/stores/joselevende-store-logo-1793969559103-1793969559328-fdfmwftyena.webp" alt="Lobix"></div>
+  <div class="search-wrap">
+    <form class="search" id="searchForm" role="search">
+      <div class="row">
+        <input id="guia" type="text" placeholder="Número de guía" aria-label="Número de guía" autocomplete="off">
+        <button type="submit" aria-label="Buscar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+      </div>
+    </form>
+    <div class="guia-hint">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="5"></line><polyline points="5 11 12 4 19 11"></polyline></svg>
+      <span>Aquí colocás tu número de guía</span>
+    </div>
+  </div>
+</div></div>
+<main><div id="content" class="stk"></div></main>
+<script>
+(function(){
+var API='/api/rastreo/';
+var PRIMARY='#108EE3';
+var STEPS=[['Recogida','shipped_at'],['En tránsito','in_transit_at'],['En reparto','out_for_delivery_at'],['Entregado','delivered_at']];
+var STATUS_STEP={GUIA_GENERADA:0,EN_TRANSITO:1,EN_REPARTO:2,ENTREGADO:3};
+var STATUS_LABEL={GUIA_GENERADA:'Guía generada',EN_TRANSITO:'En tránsito',EN_REPARTO:'En reparto',ENTREGADO:'Entregado',DEVOLUCION:'En devolución',NOVEDAD:'Novedad',NOVEDAD_OPERATIVA:'Novedad operativa',RECLAME_OFICINA:'Reclame en oficina'};
+var MONTHS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+var S='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+var ICONS=[
+S+'<path d="M16.5 9.4 7.55 4.24"></path><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
+S+'<rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>',
+S+'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+S+'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+];
+var CASH='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>';
+function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function el(id){return document.getElementById(id);}
+function fmt(d){if(!d)return null;var x=new Date(d);if(isNaN(x.getTime()))return null;var h=x.getHours();var ap=h>=12?'PM':'AM';var mm=String(x.getMinutes());if(mm.length<2)mm='0'+mm;return x.getDate()+' '+MONTHS[x.getMonth()]+' '+x.getFullYear()+' - '+(h%12||12)+':'+mm+' '+ap;}
+function money(n){return '$'+Number(n).toLocaleString('es-AR',{maximumFractionDigits:2});}
+function statusColor(st){if(st==='ENTREGADO')return '#16A34A';if(st==='DEVOLUCION')return '#DC2626';if(st==='NOVEDAD'||st==='NOVEDAD_OPERATIVA')return '#D97706';if(st==='RECLAME_OFICINA')return '#EA580C';return PRIMARY;}
+function timeline(d){
+  var ts=d.timestamps||{},cur=(d.status in STATUS_STEP)?STATUS_STEP[d.status]:-1,h='<div class="tl">';
+  if(cur<0){for(var j=0;j<STEPS.length;j++){if(ts[STEPS[j][1]])cur=j;}}
+  for(var i=0;i<STEPS.length;i++){
+    var done=i<=cur,last=i===STEPS.length-1,tf=fmt(ts[STEPS[i][1]]);
+    h+='<div class="step">'+(last?'':'<div class="bar'+(i<cur?' on':'')+'"></div>')
+      +'<div class="dot'+(done?' on':'')+'">'+ICONS[i]+'</div>'
+      +'<div class="lbl'+(done?' on':'')+'">'+esc(STEPS[i][0])+'</div>'
+      +'<div class="tlt'+(tf?' on':'')+'">'+(tf?esc(tf):'Pendiente')+'</div></div>';
+  }
+  return h+'</div>';
+}
+function alertBanner(d){
+  var st=d.status,sub=d.substatus?'<div style="font-size:13px;margin-top:4px">'+esc(d.substatus)+'</div>':'';
+  if(st==='NOVEDAD'||st==='NOVEDAD_OPERATIVA')return '<div class="bsignal bsignal-a"><div><b>Novedad en el envío</b>'+sub+'</div></div>';
+  if(st==='RECLAME_OFICINA')return '<div class="bsignal bsignal-o"><div><b>Disponible para recoger en oficina</b>'+sub+'</div></div>';
+  return '';
+}
+function payBlock(d){
+  if(d.amount_due==null)return '';
+  // Ya entregado: se muestra el valor, pero no queda nada por abonar.
+  return '<div class="pay"><span class="amt">'+esc(money(d.amount_due))+'</span>'+(d.status==='ENTREGADO'?'':'<span class="cash">'+CASH+'Abonás en efectivo</span>')+'</div>';
+}
+function prodList(d){
+  var ps=(d.products&&d.products.length)?d.products:(d.product_name?[{name:d.product_name,image:d.product_image}]:[]);
+  var h='',last=ps.length-1;
+  for(var i=0;i<=last;i++){var p=ps[i];
+    h+='<div class="pr"><img src="'+esc(p.image)+'" alt="" loading="lazy" onerror="this.style.visibility=&#39;hidden&#39;"><span class="nm">'+(p.quantity?esc(p.quantity)+'x ':'')+esc(p.name)+'</span>'+(i===last?payBlock(d):'')+'</div>';
+  }
+  return h?'<div class="prods">'+h+'</div>':'';
+}
+function infoRow(k,v){if(v==null||v==='')return '';return '<div class="ir"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>';}
+function message(title,text){el('content').innerHTML='<div class="card center"><h2 style="margin:0 0 4px;font-size:18px">'+esc(title)+'</h2><p class="muted">'+esc(text)+'</p></div>';}
+function fetchTracking(num){
+  el('content').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 0"><div class="spin"></div><p class="muted">Buscando guía...</p></div>';
+  fetch(API+encodeURIComponent(num)).then(function(r){
+    if(r.status===404){message('Guía no encontrada','No encontramos envíos con el número '+num+'. Verifica el número e intenta de nuevo.');return null;}
+    if(!r.ok)throw new Error('error');
+    return r.json();
+  }).then(function(j){if(j)render(j);}).catch(function(){message('Error de conexión','No pudimos conectar con el servidor. Intenta de nuevo en unos segundos.');});
+}
+function render(d){
+  el('content').innerHTML='<div class="card">'
+    +'<div class="center" style="margin-bottom:12px"><div class="kicker">Número de guía</div><div class="tnum">'+esc(d.tracking_number)+'</div></div>'
+    +'<div class="center" style="margin-bottom:12px"><span class="chip">'+esc(d.carrier)+'</span></div>'
+    +'<div class="center" style="margin-bottom:16px"><div class="kicker">Estado actual</div><div style="font-size:20px;font-weight:700;color:'+statusColor(d.status)+'">'+esc(STATUS_LABEL[d.status]||d.status)+'</div>'+((d.status==='NOVEDAD'||d.status==='NOVEDAD_OPERATIVA')?'<div class="nov-note">Nos estaremos comunicando con vos por chat o llamada para solucionarla</div>':'')+'</div>'
+    +alertBanner(d)+timeline(d)
+    +'<div class="info">'+infoRow('Remitente (Tienda)',d.store_name||'—')+infoRow('Destinatario',d.recipient_name||'—')+infoRow('Teléfono',d.recipient_phone)+infoRow('Dirección',d.shipping_address)+infoRow('Destino',[d.destination_city,d.destination_department].filter(Boolean).join(', ')||'—')+'</div>'
+    +prodList(d)+'</div>'
+    +((d.status==='ENTREGADO'||d.status==='DEVOLUCION')?'':'<div class="surprise"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg><span>Al recibir tu pedido, te vamos a enviar una sorpresa para tu próxima compra</span></div>');
+}
+el('searchForm').addEventListener('submit',function(e){e.preventDefault();var v=el('guia').value.trim();if(v){history.replaceState(null,'','/rastreo/'+encodeURIComponent(v));fetchTracking(v);}});
+var ruta=location.pathname.match(/^\/rastreo\/([^\/]+)/);
+var inicial=ruta?decodeURIComponent(ruta[1]):new URLSearchParams(location.search).get('guia');
+if(inicial){el('guia').value=inicial;fetchTracking(inicial);}
+else{el('content').innerHTML='<div class="center muted" style="padding:32px 0">Ingresa tu número de guía en el buscador de arriba para rastrear tu pedido</div>';}
+})();
+</script>
+</body>
+</html>
