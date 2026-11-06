@@ -1,5 +1,5 @@
 // Junta el estado del envio (iComfly) con el valor a pagar (Shopify).
-// Variables en Vercel: SHOPIFY_ADMIN_TOKEN (obligatoria), SHOPIFY_STORE_DOMAIN y SHOPIFY_API_VERSION (opcionales).
+// Variables en Vercel: SHOPIFY_CLIENT_ID y SHOPIFY_CLIENT_SECRET (obligatorias), SHOPIFY_STORE_DOMAIN y SHOPIFY_API_VERSION (opcionales).
 const QUERY = `query($q: String!) {
   orders(first: 5, query: $q) {
     nodes {
@@ -9,10 +9,31 @@ const QUERY = `query($q: String!) {
   }
 }`;
 
+let tokenGuardado = null;
+let tokenVence = 0;
+
+// El token de Shopify dura 24 horas: se pide uno nuevo solo cuando hace falta.
+async function obtenerToken(tienda) {
+  const id = process.env.SHOPIFY_CLIENT_ID;
+  const secreto = process.env.SHOPIFY_CLIENT_SECRET;
+  if (!id || !secreto) return null;
+  if (tokenGuardado && Date.now() < tokenVence) return tokenGuardado;
+  const r = await fetch(`https://${tienda}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: id, client_secret: secreto })
+  });
+  if (!r.ok) throw new Error(`Token de Shopify ${r.status}`);
+  const { access_token, expires_in } = await r.json();
+  tokenGuardado = access_token;
+  tokenVence = Date.now() + (expires_in - 60) * 1000;
+  return tokenGuardado;
+}
+
 async function buscarValor(guia) {
-  const token = process.env.SHOPIFY_ADMIN_TOKEN;
-  if (!token) return null;
   const tienda = process.env.SHOPIFY_STORE_DOMAIN || 'lobixshop.myshopify.com';
+  const token = await obtenerToken(tienda);
+  if (!token) return null;
   const version = process.env.SHOPIFY_API_VERSION || '2026-07';
   const r = await fetch(`https://${tienda}/admin/api/${version}/graphql.json`, {
     method: 'POST',
